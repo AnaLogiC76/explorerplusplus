@@ -1287,8 +1287,15 @@ LRESULT Explorerplusplus::OnCustomDraw(LPARAM lParam)
 				if (bMatchFileName && bMatchAttributes)
 				{
 					pnmlvcd->clrText = colorRule.rgbColour;
-					return CDRF_NEWFONT;
 				}
+				else
+				{
+					/* Workaround for bug in ListView: For hovered or selected items the
+					textcolor is hardcoded to Black, to ensure visibility with custom system
+					colors or themes override with WindowText-color. */
+					pnmlvcd->clrText = GetSysColor(COLOR_WINDOWTEXT);
+				}
+				return CDRF_NEWFONT;
 			}
 		}
 		break;
