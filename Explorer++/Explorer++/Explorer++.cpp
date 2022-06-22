@@ -49,7 +49,7 @@ Explorerplusplus::Explorerplusplus(HWND hwnd) :
 	m_bAttemptToolbarRestore = false;
 	m_bLanguageLoaded = false;
 	m_bListViewRenaming = false;
-	m_bShowTabBar = true;
+	m_bShowTabBar = false;
 	m_pActiveShellBrowser = nullptr;
 	m_hMainRebar = nullptr;
 	m_hStatusBar = nullptr;

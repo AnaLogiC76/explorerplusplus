@@ -729,7 +729,7 @@ void TabContainer::OnTabCreated(int tabId, BOOL switchToNewTab)
 	UNREFERENCED_PARAMETER(tabId);
 	UNREFERENCED_PARAMETER(switchToNewTab);
 
-	if (!m_config->alwaysShowTabBar.get() && (GetNumTabs() > 1))
+	if (m_config->alwaysShowTabBar.get() || (GetNumTabs() > 1))
 	{
 		m_expp->ShowTabBar();
 	}
