@@ -669,6 +669,14 @@ int CALLBACK CompareItemsStub(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
 	return shellTreeView->CompareItems(lParam1, lParam2);
 }
 
+std::array treeview_custom_order=
+{
+	L"::{20D04FE0-3AEA-1069-A2D8-08002B30309D}",	/* "This PC" */
+	L"::{F02C1A0D-BE21-4350-88B0-7367FC96EF3C}",	/* "Network" */
+	L"::{645FF040-5081-101B-9F08-00AA002F954E}",	/* "Recycle Bin" */
+	L"::{031E4825-7B94-4DC3-B131-E946B44C8DD5}",	/* "Libraries" */
+};
+
 int CALLBACK ShellTreeView::CompareItems(LPARAM lParam1, LPARAM lParam2)
 {
 	TCHAR szTemp[MAX_PATH];
@@ -698,6 +706,15 @@ int CALLBACK ShellTreeView::CompareItems(LPARAM lParam1, LPARAM lParam2)
 	}
 	else
 	{
+		/* items in treeview_custom_order preceede each other and any item not in the list. */
+		auto index1=std::find(treeview_custom_order.begin(),treeview_custom_order.end(),displayName1);
+		auto index2=std::find(treeview_custom_order.begin(),treeview_custom_order.end(),displayName2);
+
+		if (index1 != treeview_custom_order.end() || index2 != treeview_custom_order.end())
+		{
+			return int(index1-index2);
+		}
+
 		if (!SHGetPathFromIDList(itemInfo1.pidl.get(), szTemp)
 			&& SHGetPathFromIDList(itemInfo2.pidl.get(), szTemp))
 		{
