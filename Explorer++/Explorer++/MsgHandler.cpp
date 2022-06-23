@@ -469,6 +469,9 @@ BOOL Explorerplusplus::OnSize(int MainWindowWidth, int MainWindowHeight)
 
 	SetWindowPos(m_hHolder, nullptr, 0, iHolderTop, iHolderWidth, iHolderHeight, SWP_NOZORDER);
 
+	/* Hide treeview heading by overlapping it with treeview. */
+	tabWindowHeight=0;
+
 	/* The treeview is only slightly smaller than the holder
 	window, in both the x and y-directions. */
 	SetWindowPos(m_shellTreeView->GetHWND(), nullptr, TREEVIEW_X_CLEARANCE, tabWindowHeight,
