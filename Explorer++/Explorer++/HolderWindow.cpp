@@ -152,6 +152,10 @@ void HolderWindow::OnHolderWindowPaint(HWND hwnd)
 	{
 		SetTextColor(hdc, DarkModeHelper::TEXT_COLOR);
 	}
+	else
+	{
+		SetTextColor(hdc, GetSysColor(COLOR_WINDOWTEXT));
+	}
 
 	TextOut(hdc, FOLDERS_TEXT_X, FOLDERS_TEXT_Y, header.c_str(), static_cast<int>(header.size()));
 
