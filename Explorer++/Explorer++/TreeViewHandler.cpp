@@ -34,7 +34,11 @@ LRESULT CALLBACK TreeViewSubclassStub(
 
 /* Used to keep track of which item was selected in
 the treeview control. */
-HTREEITEM g_newSelectionItem;
+namespace
+{
+	HTREEITEM g_oldSelectionItem = 0;
+	HTREEITEM g_newSelectionItem = 0;
+}
 
 void Explorerplusplus::CreateFolderControls()
 {
@@ -299,13 +303,31 @@ void Explorerplusplus::OnTreeViewHolderWindowTimer()
 			selectedTab.GetShellBrowser()->GetNavigationController()->BrowseFolder(pidlDirectory.get());
 		}
 
+		HWND hWndShellTreeView = m_shellTreeView->GetHWND();
 		if (m_config->treeViewAutoExpandSelected)
 		{
-			TreeView_Expand(m_shellTreeView->GetHWND(), g_newSelectionItem, TVE_EXPAND);
+			/* Collapse previously selected node only if it is not a child of
+			new selected node. */
+			HTREEITEM hTreeNewParent = g_newSelectionItem;
+			while (hTreeNewParent)
+			{
+				hTreeNewParent = TreeView_GetParent(hWndShellTreeView, hTreeNewParent);
+				if (hTreeNewParent == g_oldSelectionItem)
+					break;
+			}
+
+			if (!hTreeNewParent)
+			{
+				TreeView_Expand(hWndShellTreeView, g_oldSelectionItem, TVE_COLLAPSE);
+			}
+			TreeView_Expand(hWndShellTreeView, g_newSelectionItem, TVE_EXPAND);
 		}
 	}
 
 	KillTimer(m_hHolder, 0);
+
+	/* New selected item is the next old selected item. */
+	g_oldSelectionItem = g_newSelectionItem;
 }
 
 void Explorerplusplus::OnTreeViewSelChanged(LPARAM lParam)
