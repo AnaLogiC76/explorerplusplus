@@ -291,11 +291,13 @@ void Explorerplusplus::OnTreeViewHolderWindowTimer()
 	auto pidlDirectory = m_shellTreeView->GetItemPidl(g_newSelectionItem);
 	auto pidlCurrentDirectory = m_pActiveShellBrowser->GetDirectoryIdl();
 
-	if (!m_bSelectingTreeViewDirectory && !m_bTreeViewRightClick
-		&& !ArePidlsEquivalent(pidlDirectory.get(), pidlCurrentDirectory.get()))
+	if (!m_bSelectingTreeViewDirectory && !m_bTreeViewRightClick)
 	{
-		Tab &selectedTab = m_tabContainer->GetSelectedTab();
-		selectedTab.GetShellBrowser()->GetNavigationController()->BrowseFolder(pidlDirectory.get());
+		if (!ArePidlsEquivalent(pidlDirectory.get(), pidlCurrentDirectory.get()))
+		{
+			Tab &selectedTab = m_tabContainer->GetSelectedTab();
+			selectedTab.GetShellBrowser()->GetNavigationController()->BrowseFolder(pidlDirectory.get());
+		}
 
 		if (m_config->treeViewAutoExpandSelected)
 		{
@@ -503,7 +505,11 @@ void Explorerplusplus::UpdateTreeViewSelection()
 			sent when the two are different.
 			Therefore, the only case to handle is when the treeview
 			selection is changed by browsing using the listview. */
-			if (TreeView_GetSelection(m_shellTreeView->GetHWND()) != hItem)
+
+			/* Contrary to naming this bool disables updating of the treeview,
+			especially treeViewAutoExpandSelected does no longer work reliably - looks
+			like an outdated optimization, so disabled. */
+			if constexpr(0 && TreeView_GetSelection(m_shellTreeView->GetHWND()) != hItem)
 			{
 				m_bSelectingTreeViewDirectory = true;
 			}
