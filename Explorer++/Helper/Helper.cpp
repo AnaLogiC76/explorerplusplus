@@ -54,8 +54,10 @@ BOOL CreateSystemTimeString(
 	int iReturn1 = GetDateFormat(LOCALE_USER_DEFAULT, LOCALE_USE_CP_ACP, localSystemTime, nullptr,
 		dateBuffer, SIZEOF_ARRAY(dateBuffer));
 
+	bool bTimeShowSeconds = false;
+
 	TCHAR timeBuffer[512];
-	int iReturn2 = GetTimeFormat(LOCALE_USER_DEFAULT, LOCALE_USE_CP_ACP, localSystemTime, nullptr,
+	int iReturn2 = GetTimeFormat(LOCALE_USER_DEFAULT, LOCALE_USE_CP_ACP | (bTimeShowSeconds ? 0 : TIME_NOSECONDS), localSystemTime, nullptr,
 		timeBuffer, SIZEOF_ARRAY(timeBuffer));
 
 	if ((iReturn1 != 0) && (iReturn2 != 0))
