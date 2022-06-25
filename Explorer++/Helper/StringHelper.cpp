@@ -24,7 +24,15 @@ void FormatSizeString(ULARGE_INTEGER lFileSize, TCHAR *pszFileSize, size_t cchBu
 	auto fFileSize = static_cast<double>(lFileSize.QuadPart);
 	int iSizeIndex = 0;
 
-	if (bForceSize)
+	bool bExplorerKB = true;
+	bool bBytesWithoutSuffix = true;
+
+	if (bExplorerKB)
+	{
+		iSizeIndex = 1;
+		fFileSize = floor((fFileSize + 1023) / 1024);
+	}
+	else if (bForceSize)
 	{
 		switch (sdf)
 		{
@@ -76,42 +84,53 @@ void FormatSizeString(ULARGE_INTEGER lFileSize, TCHAR *pszFileSize, size_t cchBu
 
 	int iPrecision;
 
-	if (iSizeIndex == 0)
+	if (bExplorerKB)
 	{
 		iPrecision = 0;
 	}
 	else
 	{
-		if (fFileSize < 10)
-		{
-			iPrecision = 2;
-		}
-		else if (fFileSize < 100)
-		{
-			iPrecision = 1;
-		}
-		else
+		if (iSizeIndex == 0)
 		{
 			iPrecision = 0;
 		}
-	}
+		else
+		{
+			if (fFileSize < 10)
+			{
+				iPrecision = 2;
+			}
+			else if (fFileSize < 100)
+			{
+				iPrecision = 1;
+			}
+			else
+			{
+				iPrecision = 0;
+			}
+		}
 
-	int iLeast =
-		static_cast<int>((fFileSize - static_cast<int>(fFileSize)) * pow(10.0, iPrecision + 1));
+		int iLeast =
+			static_cast<int>((fFileSize - static_cast<int>(fFileSize)) * pow(10.0, iPrecision + 1));
 
-	/* Setting the precision will cause automatic rounding. Therefore,
-	if the least significant digit to be dropped is greater than 0.5,
-	reduce it to below 0.5. */
-	if (iLeast >= 5)
-	{
-		fFileSize -= 5.0 * pow(10.0, -(iPrecision + 1));
+		/* Setting the precision will cause automatic rounding. Therefore,
+		if the least significant digit to be dropped is greater than 0.5,
+		reduce it to below 0.5. */
+		if (iLeast >= 5)
+		{
+			fFileSize -= 5.0 * pow(10.0, -(iPrecision + 1));
+		}
 	}
 
 	std::wstringstream ss;
 	ss.imbue(std::locale(""));
 	ss.precision(iPrecision);
 
-	ss << std::fixed << fFileSize << _T(" ") << SIZE_STRINGS[iSizeIndex];
+	ss << std::fixed << fFileSize;
+	if (iSizeIndex || !bBytesWithoutSuffix)
+	{
+		ss << _T(" ") << SIZE_STRINGS[iSizeIndex];
+	}
 	std::wstring str = ss.str();
 	StringCchCopy(pszFileSize, cchBuf, str.c_str());
 }
