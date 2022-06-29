@@ -105,10 +105,19 @@ void MainWindow::UpdateWindowText()
 
 	TCHAR szTitle[512];
 
-	TCHAR szTemp[64];
-	LoadString(m_instance, IDS_MAIN_WINDOW_TITLE, szTemp, SIZEOF_ARRAY(szTemp));
-	StringCchPrintf(szTitle, SIZEOF_ARRAY(szTitle), szTemp, folderDisplayName.c_str(),
-		NExplorerplusplus::APP_NAME);
+	bool bDontShowAppName = true;
+
+	if (bDontShowAppName)
+	{
+		StringCchCopy(szTitle, SIZEOF_ARRAY(szTitle), folderDisplayName.c_str());
+	}
+	else
+	{
+		TCHAR szTemp[64];
+		LoadString(m_instance, IDS_MAIN_WINDOW_TITLE, szTemp, SIZEOF_ARRAY(szTemp));
+		StringCchPrintf(szTitle, SIZEOF_ARRAY(szTitle), szTemp, folderDisplayName.c_str(),
+			NExplorerplusplus::APP_NAME);
+	}
 
 	if (m_config->showUserNameInTitleBar.get() || m_config->showPrivilegeLevelInTitleBar.get())
 	{
