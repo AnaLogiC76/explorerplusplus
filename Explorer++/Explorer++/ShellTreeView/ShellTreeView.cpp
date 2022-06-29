@@ -746,6 +746,26 @@ HRESULT ShellTreeView::ExpandDirectory(HTREEITEM hParent)
 {
 	auto pidlDirectory = GetItemPidl(hParent);
 
+	/* Skip searching for visible computers in 'Network'-folder.
+	Without search there's nothing to add. Also it appears treeview does not
+	like to be sorted without new added items as it would send TVM_EXPAND causing
+	an infinite loop. */
+	{
+		std::wstring parentDisplayName;
+
+		HRESULT hr=GetDisplayName(pidlDirectory.get(), SHGDN_FORPARSING, parentDisplayName);
+
+		if (FAILED(hr))
+		{
+			return hr;
+		}
+
+		if (parentDisplayName == L"::{F02C1A0D-BE21-4350-88B0-7367FC96EF3C}")
+		{
+			return hr;
+		}
+	}
+
 	wil::com_ptr_nothrow<IShellFolder2> shellFolder2;
 	HRESULT hr = BindToIdl(pidlDirectory.get(), IID_PPV_ARGS(&shellFolder2));
 
@@ -762,6 +782,7 @@ HRESULT ShellTreeView::ExpandDirectory(HTREEITEM hParent)
 	}
 
 	wil::com_ptr_nothrow<IEnumIDList> pEnumIDList;
+
 	hr = shellFolder2->EnumObjects(nullptr, enumFlags, &pEnumIDList);
 
 	if (FAILED(hr) || !pEnumIDList)

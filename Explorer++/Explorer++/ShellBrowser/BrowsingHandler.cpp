@@ -218,6 +218,16 @@ HRESULT ShellBrowser::EnumerateFolder(PCIDLIST_ABSOLUTE pidlDirectory, bool addH
 	ULONG numFetched = 1;
 	unique_pidl_child pidlItem;
 
+	if (parsingPath == L"::{F02C1A0D-BE21-4350-88B0-7367FC96EF3C}")
+	{
+		/* As the treeview already does the scanning and adding of hosts accessed via
+		UNC it would be nice to use that here, would need to transport the host list
+		via messaging.
+		As the list is shown in the treeview anyway for now it's better to leave the
+		listview empty than blocking the process. */
+		return hr;
+	}
+
 	while (enumerator->Next(1, wil::out_param(pidlItem), &numFetched) == S_OK && (numFetched == 1))
 	{
 		auto item = GetItemInformation(shellFolder.get(), pidlDirectory, pidlItem.get());

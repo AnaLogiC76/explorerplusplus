@@ -457,6 +457,74 @@ void ShellTreeView::AddItemInternal(HTREEITEM hParent,const TCHAR *szFullFileNam
 	CoTaskMemFree(pidlComplete);
 }
 
+/* Used by TreeViewHandler to add a newly discovered host to the Network-node
+if it does not already exist. */
+void ShellTreeView::AddUNCserverItem(std::wstring wsFullFileName)
+{
+	/* Get normalized full path. */
+	std::wstring wsServerName;
+	wsServerName.resize(GetFullPathName(wsFullFileName.c_str(),0,nullptr,nullptr));
+	GetFullPathName(wsFullFileName.c_str(),DWORD(wsServerName.capacity()),wsServerName.data(),nullptr);
+
+	/* Strip anything beyond the server name */
+	size_t endpos=wsServerName.find('\\',2);
+	if (endpos!=wsServerName.npos)
+	{
+		wsServerName.erase(endpos);
+	}
+
+	PIDLIST_ABSOLUTE pidlComplete = nullptr;
+	PCITEMID_CHILD pidlRelative = nullptr;
+	if (FAILED(SHParseDisplayName(wsServerName.c_str(), nullptr, &pidlComplete, 0, nullptr)))
+		return;
+
+	/* If node for server already exists, there is nothing to do here. */
+	if (LocateItem(pidlComplete))
+	{
+		return;
+	}
+
+	PIDLIST_ABSOLUTE pidlNetwork = nullptr;
+	if (FAILED(SHParseDisplayName(L"::{F02C1A0D-BE21-4350-88B0-7367FC96EF3C}", nullptr, &pidlNetwork, 0, nullptr)))
+		return;
+
+	wil::com_ptr_nothrow<IShellFolder2> shellFolder;
+	if (FAILED(BindToIdl(pidlNetwork, IID_PPV_ARGS(&shellFolder))))
+		return;
+
+	HTREEITEM hNetworkItem = LocateItem(pidlNetwork);
+
+	if (FAILED(SHBindToParent(pidlComplete, IID_PPV_ARGS(&shellFolder), &pidlRelative)))
+		return;
+
+	STRRET str;
+	if (FAILED(shellFolder->GetDisplayNameOf(pidlRelative, SHGDN_NORMAL, &str)))
+		return;
+
+	TCHAR itemName[MAX_PATH];
+	if (FAILED(StrRetToBuf(&str, pidlRelative, itemName, SIZEOF_ARRAY(itemName))))
+		return;
+
+	int itemId = GenerateUniqueItemId();
+	m_itemInfoMap[itemId].pidl.reset(ILCloneFull(pidlComplete));
+	m_itemInfoMap[itemId].pridl.reset(ILCloneChild(pidlRelative));
+
+	TVITEMEX tvItem;
+	tvItem.mask = TVIF_TEXT | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_PARAM | TVIF_CHILDREN;
+	tvItem.pszText = itemName;
+	tvItem.iImage = I_IMAGECALLBACK;
+	tvItem.iSelectedImage = I_IMAGECALLBACK;
+	tvItem.lParam = itemId;
+	tvItem.cChildren = I_CHILDRENCALLBACK;
+
+	TVINSERTSTRUCT tvis;
+	tvis.hInsertAfter = TVI_LAST;
+	tvis.hParent = hNetworkItem;
+	tvis.itemex = tvItem;
+
+	TreeView_InsertItem(m_hTreeView, &tvis);
+}
+
 /* Renames an item in the treeview. This essentially involves changing
 the items display text, and updating it's pidl. Note that the children of
 this item MUST ALL BE UPDATED as well, since their pidl's will also

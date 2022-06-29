@@ -515,10 +515,27 @@ void Explorerplusplus::UpdateTreeViewSelection()
 	// Note that mapped drives don't have that specific issue, as they're contained within the This
 	// PC folder. However, there is still the general problem that each parent folder has to be
 	// enumerated and all the work is done on the main thread.
-	if (!PathIsUNC(m_pActiveShellBrowser->GetDirectory().c_str()))
+
+	/* Or just disable searching for computers in the 'Network'-folder which most of the time
+	doesn't work anyway since Windows 95.
+	Instead add explicitely requested computers/shares to the tree. */
 	{
 		HTREEITEM hItem =
 			m_shellTreeView->LocateItem(m_pActiveShellBrowser->GetDirectoryIdl().get());
+
+		/* If item not found and it's an UNC-path, add computer/share to the tree, then
+		search again. */
+		if (hItem == nullptr)
+		{
+			std::wstring wsPath = m_pActiveShellBrowser->GetDirectory();
+
+			if (PathIsUNC(wsPath.c_str()))
+			{
+				m_shellTreeView->AddUNCserverItem(wsPath);
+
+				hItem = m_shellTreeView->LocateItem(m_pActiveShellBrowser->GetDirectoryIdl().get());
+			}
+		}
 
 		if (hItem != nullptr)
 		{

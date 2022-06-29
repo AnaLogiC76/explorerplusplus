@@ -44,6 +44,7 @@ public:
 	void CopySelectedItemToClipboard(bool copy);
 	void Paste();
 	void PasteShortcut();
+	void AddUNCserverItem(std::wstring wsFullFileName);
 
 private:
 	static const UINT_PTR SUBCLASS_ID = 0;
