@@ -292,18 +292,27 @@ void Explorerplusplus::OnTreeViewCopyUniversalPaths() const
 
 void Explorerplusplus::OnTreeViewHolderWindowTimer()
 {
+	/* Kill timer asap as delays in execution would cause this function to be called
+	repeatetly, in case of a modal error dialog this can result in a stack overflow. */
+	KillTimer(m_hHolder, 0);
+
 	auto pidlDirectory = m_shellTreeView->GetItemPidl(g_newSelectionItem);
 	auto pidlCurrentDirectory = m_pActiveShellBrowser->GetDirectoryIdl();
 
 	if (!m_bSelectingTreeViewDirectory && !m_bTreeViewRightClick)
 	{
+		HWND hWndShellTreeView = m_shellTreeView->GetHWND();
+
 		if (!ArePidlsEquivalent(pidlDirectory.get(), pidlCurrentDirectory.get()))
 		{
 			Tab &selectedTab = m_tabContainer->GetSelectedTab();
-			selectedTab.GetShellBrowser()->GetNavigationController()->BrowseFolder(pidlDirectory.get());
+			if (S_OK!=selectedTab.GetShellBrowser()->GetNavigationController()->BrowseFolder(pidlDirectory.get()))
+			{
+				/* On error navigate back to previous selection. */
+				TreeView_SelectItem(hWndShellTreeView, g_oldSelectionItem);
+			}
 		}
 
-		HWND hWndShellTreeView = m_shellTreeView->GetHWND();
 		if (m_config->treeViewAutoExpandSelected)
 		{
 			/* Collapse previously selected node only if it is not a child of
@@ -323,8 +332,6 @@ void Explorerplusplus::OnTreeViewHolderWindowTimer()
 			TreeView_Expand(hWndShellTreeView, g_newSelectionItem, TVE_EXPAND);
 		}
 	}
-
-	KillTimer(m_hHolder, 0);
 
 	/* New selected item is the next old selected item. */
 	g_oldSelectionItem = g_newSelectionItem;
