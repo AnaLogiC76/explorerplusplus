@@ -354,7 +354,11 @@ void Explorerplusplus::OnTreeViewSelChanged(LPARAM lParam)
 
 		g_newSelectionItem = tvItem->hItem;
 
-		if (m_config->treeViewDelayEnabled)
+		bool bDelayNonMouseOnly = true;
+
+		/* The delay only makes sense with keyboard-navigation, as with the mouse you directly click
+		on what you want selected, no reason to wait. */
+		if (m_config->treeViewDelayEnabled && (!bDelayNonMouseOnly || pnmtv->action != TVC_BYMOUSE))
 		{
 			/* Schedule a folder change. This adds enough
 			of a delay for the treeview selection to be changed
