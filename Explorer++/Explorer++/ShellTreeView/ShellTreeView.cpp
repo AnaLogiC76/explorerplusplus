@@ -74,6 +74,18 @@ ShellTreeView::ShellTreeView(HWND hParent, IExplorerplusplus *coreInterface,
 
 	SetWindowTheme(m_hTreeView, L"Explorer", nullptr);
 
+	bool bUseExplorerIndentation=true;
+	if (bUseExplorerIndentation)
+	{
+		TreeView_SetIndent(m_hTreeView, 8);
+	}
+	bool bUseExplorerItemHeight=true;
+	if (bUseExplorerItemHeight)
+	{
+		int height = TreeView_GetItemHeight(m_hTreeView);
+		TreeView_SetItemHeight(m_hTreeView, height+2);
+	}
+
 	m_windowSubclasses.push_back(std::make_unique<WindowSubclassWrapper>(
 		m_hTreeView, TreeViewProcStub, SUBCLASS_ID, reinterpret_cast<DWORD_PTR>(this)));
 	m_windowSubclasses.push_back(std::make_unique<WindowSubclassWrapper>(
@@ -308,6 +320,7 @@ LRESULT CALLBACK ShellTreeView::ParentWndProc(HWND hwnd, UINT uMsg, WPARAM wPara
 		}
 		break;
 	}
+
 
 	return DefSubclassProc(hwnd, uMsg, wParam, lParam);
 }
