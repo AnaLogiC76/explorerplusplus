@@ -467,7 +467,12 @@ void ShellBrowser::ModifyItem(PCIDLIST_ABSOLUTE pidl)
 		ListView_SetItemState(m_hListView, *itemIndex, 0, LVIS_CUT);
 	}
 
-	ListView_SortItems(m_hListView, SortStub, this);
+	/* Do not forcefully sort like Windows 7 Explorer when the user asked not to
+	do so. */
+	if (m_config->globalFolderSettings.insertSorted)
+	{
+		ListView_SortItems(m_hListView, SortStub, this);
+	}
 
 	if (m_folderSettings.showInGroups)
 	{
@@ -617,7 +622,12 @@ void ShellBrowser::RenameItem(int internalIndex, PCIDLIST_ABSOLUTE pidlNew)
 		ListView_SetItemText(m_hListView, *itemIndex, 0, filename.data());
 	}
 
-	ListView_SortItems(m_hListView, SortStub, this);
+	/* Do not forcefully sort like Windows 7 Explorer when the user asked not to
+	do so. */
+	if (m_config->globalFolderSettings.insertSorted)
+	{
+		ListView_SortItems(m_hListView, SortStub, this);
+	}
 
 	if (m_folderSettings.showInGroups)
 	{
